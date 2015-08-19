@@ -4,22 +4,30 @@ from pymongo import MongoClient
 import nltk
 from nltk.corpus import stopwords
 
-# client = MongoClient()
-# db = client['yelp']
-# reviews = db['reviews']
-# documents = reviews.find({},{'text' : 1}).limit(20)
-# for doc in documents:
-#     print(doc.get('text'))
-
-
-text = ''' No Dr. Sinha 'I want you to die'. No no it is not I.'''
-
 sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+bigram = []
 
-print('\n-----\n'.join(sent_detector.tokenize(text.strip())))
+client = MongoClient()
+db = client['yelp']
+reviews = db['reviews']
+documents = reviews.find({"stars" : 5},{'text' : 1}).limit(200)
+for doc in documents:
+    text = doc.get('text')
+    # smartish word tokenizer, not too reliable
+    sentences = sent_detector.tokenize(text.lower().strip())
+    stopped_sent = []
 
-# words = [word for word in tokenized_text if word not in stopwords.words('english')]
-# bigram = nltk.trigrams(words)
-# fdist = nltk.FreqDist(bigram)
-# for k, v in fdist.items():
-#     print k,v
+    # remove stopwords
+    for sentence in sentences:
+        words = [word for word in sentence.split() if word not in stopwords.words('english')]
+        joint = " ".join(words)
+        stopped_sent.append(joint)
+
+    # create bigrams
+
+    for sentence in stopped_sent:
+        bigram += nltk.bigrams(sentence.split())
+
+fdist = nltk.FreqDist(bigram)
+for k, v in fdist.items():
+    print k,v
