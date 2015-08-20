@@ -1,43 +1,28 @@
 __author__ = 'prnbs'
 
-from pymongo import MongoClient
 import nltk
-from nltk.corpus import stopwords
 from timeit import default_timer as timer
-import pandas as pd
-import itertools
+import PyMLUtils as PyM
 from sklearn.feature_extraction.text import CountVectorizer
 
 
-def fetchFromDb (query, collect, projection="", limitTo=0,db='yelp', pandas=False):
-    client = MongoClient()
-    queryAsDict = dict(itertools.izip_longest(*[iter(query)] * 2, fillvalue=""))
-    projectionAsDict = dict(itertools.izip_longest(*[iter(projection)] * 2, fillvalue=""))
-    database = client[db]
-    collection = database[collect]
-    start = timer()
-    if limitTo == 0:
-        documents = collection.find(queryAsDict, projectionAsDict)
-    else:
-        documents = collection.find(queryAsDict, projectionAsDict).limit(limitTo)
-    end = timer()
-    print "DB lazy access in " + str(end - start) + "sec"
-    if not pandas:
-        return documents
-    df = pd.DataFrame(documents)
-    return df
+
 
 if __name__ == '__main__':
     query = ["stars", 5]
     projection = ["text", 1]
-    documents = fetchFromDb(query, 'reviews', projection, 20)
+    documents = PyM.fetchFromDb(query, 'reviews', projection, 15500)
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
-    bigram = []
-    vect = CountVectorizer(ngram_range=(1,3), stop_words='english')
+    ngram = []
+    vect = CountVectorizer(ngram_range=(1, 3), stop_words='english')
+    start = timer()
     for doc in documents:
         matrix = vect.fit(doc['text'].split('\n'))
-        print matrix.get_feature_names()
-
-
+        ngram += matrix.get_feature_names()
+    end = timer()
+    print "Total elapsed " + str(end - start)
+    # freqs = [(word, ngram.getcol(idx).sum()) for word, idx in vect.vocabulary]
+    # for phrase ,times in sorted (freqs, key = lambda x : -x[1])[:25]:
+    #     print phrase, times
 
 
