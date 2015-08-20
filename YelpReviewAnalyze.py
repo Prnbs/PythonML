@@ -1,28 +1,46 @@
 __author__ = 'prnbs'
 
 import nltk
-from timeit import default_timer as timer
 import PyMLUtils as PyM
-from sklearn.feature_extraction.text import CountVectorizer
-
-
+from nltk.corpus import stopwords
+from timeit import default_timer as timer
+import operator
 
 
 if __name__ == '__main__':
     query = ["stars", 5]
     projection = ["text", 1]
-    documents = PyM.fetchFromDb(query, 'reviews', projection, 15500)
+    documents = PyM.fetchFromDb(query, 'reviews', projection, 3000)
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
     ngram = []
-    vect = CountVectorizer(ngram_range=(1, 3), stop_words='english')
-    start = timer()
+    starttime = timer()
     for doc in documents:
-        matrix = vect.fit(doc['text'].split('\n'))
-        ngram += matrix.get_feature_names()
-    end = timer()
-    print "Total elapsed " + str(end - start)
-    # freqs = [(word, ngram.getcol(idx).sum()) for word, idx in vect.vocabulary]
-    # for phrase ,times in sorted (freqs, key = lambda x : -x[1])[:25]:
-    #     print phrase, times
+        text = doc.get('text')
+        # smartish word tokenizer, not too reliable
+        sentences = sent_detector.tokenize(text.lower().strip())
+        stopped_sent = []
 
+        # remove stopwords
+        for sentence in sentences:
+            # print sentence
+            # clear up punctuations
+            cleanedSentence = filter(lambda eachword: eachword not in '$"!;?,:+-()*&^%#@!.', sentence.split())
+            # remove stopwords
+            words = [word for word in cleanedSentence if word not in stopwords.words('english')]
+            if len(words) > 0:
+                joint = " ".join(words)
+            # print joint
+            stopped_sent.append(joint)
+
+        # create bigrams
+        for sentence in stopped_sent:
+            ngram += nltk.bigrams(sentence.split())
+    endtime = timer()
+
+    fdist = nltk.FreqDist(ngram)
+    sorted_x = sorted(fdist.items(), key=operator.itemgetter(1))
+    for k in sorted_x:
+        print " ".join(k[0]) + ":" + str(k[1])
+
+    print "Elapsed time " + str(endtime - starttime)
 
