@@ -6,6 +6,7 @@ from nltk.corpus import stopwords
 from timeit import default_timer as timer
 import pandas as pd
 import itertools
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 def fetchFromDb (query, collect, projection="", limitTo=0,db='yelp', pandas=False):
@@ -32,26 +33,10 @@ if __name__ == '__main__':
     documents = fetchFromDb(query, 'reviews', projection, 20)
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
     bigram = []
+    vect = CountVectorizer(ngram_range=(1,3), stop_words='english')
     for doc in documents:
-        text = doc.get('text')
-        # smartish word tokenizer, not too reliable
-        sentences = sent_detector.tokenize(text.lower().strip())
-        stopped_sent = []
-
-        # remove stopwords
-        for sentence in sentences:
-            words = [word for word in sentence.split() if word not in stopwords.words('english')]
-            joint = " ".join(words)
-            stopped_sent.append(joint)
-
-        # create bigrams
-
-        for sentence in stopped_sent:
-            bigram += nltk.bigrams(sentence.split())
-
-    fdist = nltk.FreqDist(bigram)
-    for k, v in fdist.items():
-        print k,v
+        matrix = vect.fit(doc['text'].split('\n'))
+        print matrix.get_feature_names()
 
 
 
