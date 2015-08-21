@@ -5,6 +5,7 @@ import PyMLUtils as PyM
 from nltk.corpus import stopwords
 from timeit import default_timer as timer
 import operator
+import re
 
 
 if __name__ == '__main__':
@@ -14,6 +15,7 @@ if __name__ == '__main__':
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
     ngram = []
     starttime = timer()
+    pattern=re.compile("[^\w']")
     for doc in documents:
         text = doc.get('text')
         # smartish word tokenizer, not too reliable
@@ -24,14 +26,13 @@ if __name__ == '__main__':
         for sentence in sentences:
             # print sentence
             # clear up punctuations
-            cleanedSentence = filter(lambda eachword: eachword not in '$"!;?,:+-()*&^%#@!.', sentence.split())
+            cleanedSentence = str(pattern.sub(' ', sentence))
             # remove stopwords
-            words = [word for word in cleanedSentence if word not in stopwords.words('english')]
+            words = [word for word in cleanedSentence.split() if word not in stopwords.words('english')]
             if len(words) > 0:
                 joint = " ".join(words)
             # print joint
             stopped_sent.append(joint)
-
         # create bigrams
         for sentence in stopped_sent:
             ngram += nltk.bigrams(sentence.split())
