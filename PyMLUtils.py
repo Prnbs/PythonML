@@ -18,7 +18,7 @@ def fetchFromDb (query, collect, projection="", limitTo=0, db='yelp', pandas=Fal
     else:
         documents = collection.find(queryAsDict, projectionAsDict).limit(limitTo)
     end = timer()
-    print "DB lazy access in " + str(end - start) + "sec"
+    # print "DB lazy access in " + str(end - start) + "sec"
     if not pandas:
         return documents
     df = pd.DataFrame(documents)
