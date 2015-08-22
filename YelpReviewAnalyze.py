@@ -34,11 +34,11 @@ def createNGram(doc):
     return ngram
 
 
-if __name__ == '__main__':
-    query = ["stars", 1]
+def parallel():
+    query = ["stars", 5]
     projection = ["text", 1]
-    documents = PyM.fetchFromDb(query, 'reviews', projection)
-    sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+    documents = PyM.fetchFromDb(query, 'reviews', projection,3000)
+    global sent_detector
     starttime = timer()
 
     pool = mp.Pool(processes=4)
@@ -53,8 +53,35 @@ if __name__ == '__main__':
 
     fdist = nltk.FreqDist(flat_ngram_list)
     sorted_x = sorted(fdist.items(), key=operator.itemgetter(1), reverse=True)
-    for k in sorted_x[:200]:
+    for k in sorted_x[:5]:
         print " ".join(k[0]) + ":" + str(k[1])
 
     print "Elapsed time " + str(endtime - starttime)
 
+def singleTh():
+    query = ["stars", 5]
+    projection = ["text", 1]
+    documents = PyM.fetchFromDb(query, 'reviews', projection,3000)
+    global sent_detector
+    starttime = timer()
+
+    gram = []
+    for doc in documents:
+        gram += createNGram(doc)
+
+    # print type(gram[0])
+    endtime = timer()
+
+    fdist = nltk.FreqDist(gram)
+    sorted_x = sorted(fdist.items(), key=operator.itemgetter(1), reverse=True)
+    for k in sorted_x[:5]:
+        print " ".join(k[0]) + ":" + str(k[1])
+
+    print "Elapsed time " + str(endtime - starttime)
+
+if __name__ == '__main__':
+    sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+    print "Parallel..."
+    parallel()
+    print "Single..."
+    singleTh()
