@@ -32,7 +32,7 @@ def createNGram(doc):
             joint = " ".join(words)
         # print joint
         stopped_sent.append(joint)
-    # create bigrams
+    # create Ngrams
     for sentence in stopped_sent:
         ngram += nltk.trigrams(sentence.split())
     return ngram
