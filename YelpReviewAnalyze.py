@@ -8,7 +8,8 @@ import operator
 import re
 import multiprocessing as mp
 
-
+# Can be called in parallel or in serial
+# returns a list of ngrams
 def createNGram(doc):
     text = doc.get('text')
     # smartish word tokenizer, not too reliable
@@ -26,6 +27,7 @@ def createNGram(doc):
         # remove stopwords
         words = [word for word in cleanedSentence.split() if word not in stopwords.words('english')]
         joint = ""
+         # if nothing is left after removing stopwords don't append
         if len(words) > 0:
             joint = " ".join(words)
         # print joint
@@ -35,7 +37,8 @@ def createNGram(doc):
         ngram += nltk.trigrams(sentence.split())
     return ngram
 
-
+# Runs createNGram in parallel
+# obtains list of ngrams from createNGram and calculates their frequencies
 def parallel():
     query = ["stars", 5]
     projection = ["text", 1]
@@ -60,6 +63,8 @@ def parallel():
 
     print "Elapsed time " + str(endtime - starttime)
 
+# Runs createNGram in serial mode
+# obtains list of ngrams from createNGram and calculates their frequencies
 def singleTh():
     query = ["stars", 5]
     projection = ["text", 1]
