@@ -12,6 +12,8 @@ import multiprocessing as mp
 def createNGram(doc):
     text = doc.get('text')
     # smartish word tokenizer, not too reliable
+    sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+
     sentences = sent_detector.tokenize(text.lower().strip())
     stopped_sent = []
     ngram = []
@@ -37,8 +39,8 @@ def createNGram(doc):
 def parallel():
     query = ["stars", 5]
     projection = ["text", 1]
+    # Params: query, collection name, projection, limit
     documents = PyM.fetchFromDb(query, 'reviews', projection,3000)
-    global sent_detector
     starttime = timer()
 
     pool = mp.Pool(processes=4)
@@ -61,8 +63,8 @@ def parallel():
 def singleTh():
     query = ["stars", 5]
     projection = ["text", 1]
+    # Params: query, collection name, projection, limit
     documents = PyM.fetchFromDb(query, 'reviews', projection,3000)
-    global sent_detector
     starttime = timer()
 
     gram = []
@@ -80,7 +82,6 @@ def singleTh():
     print "Elapsed time " + str(endtime - starttime)
 
 if __name__ == '__main__':
-    sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
     print "Parallel..."
     parallel()
     print "Single..."
